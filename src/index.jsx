@@ -1,5 +1,5 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React, { useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
 import { Node } from './Node';
 
 function install(editor, { component: NodeComponent = Node }) {
@@ -8,7 +8,17 @@ function install(editor, { component: NodeComponent = Node }) {
         const Component = component.component || NodeComponent;
 
         node.update = () => new Promise((res) => {
-            ReactDOM.render(<Component node={node} editor={editor} bindSocket={bindSocket} bindControl={bindControl} />, el, res)
+            // eslint-disable-next-line
+            const ComponentWithCallback = ({ node, editor, bindSocket, bindControl, res }) => {
+                useEffect(() => {
+                    res()
+                });
+                return <Component node={node} editor={editor} bindSocket={bindSocket} bindControl={bindControl} />
+            }
+
+            const root = createRoot(el);
+            
+            root.render(<ComponentWithCallback node={node} editor={editor} bindSocket={bindSocket} bindControl={bindControl} res={res} />);
         });
         node._reactComponent = true;
         node.update();
@@ -19,7 +29,17 @@ function install(editor, { component: NodeComponent = Node }) {
         const Component = control.component;
 
         control.update = () => new Promise((res) => {
-            ReactDOM.render(<Component {...control.props} />, el, res)
+            // eslint-disable-next-line
+            const ComponentWithCallback = ({ node, editor, bindSocket, bindControl, res }) => {
+                useEffect(() => {
+                    res()
+                });
+                return <Component node={node} editor={editor} bindSocket={bindSocket} bindControl={bindControl} />
+            }
+
+            const root = createRoot(el);
+
+            root.render(<ComponentWithCallback {...control.props} res={res} />);
         });
         control.update();
     });
